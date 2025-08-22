@@ -1,253 +1,234 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, Copy } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Plus, Edit2, Trash2, Copy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const quickReplies = [
+interface QuickReply {
+  id: string;
+  name: string;
+  content: string;
+  tags: string[];
+  created_at?: string;
+}
+
+const defaultReplies: QuickReply[] = [
   {
-    id: 1,
-    title: "Welcome Message",
+    id: "1",
+    name: "Saludo Inicial",
     content: "¡Hola! Gracias por contactarnos. ¿En qué podemos ayudarte hoy?",
-    category: "greetings",
-    usage: 45
+    tags: ["saludo", "bienvenida"]
   },
   {
-    id: 2,
-    title: "Working Hours",
-    content: "Nuestro horario de atención es de lunes a viernes de 9:00 AM a 6:00 PM. Te responderemos lo antes posible.",
-    category: "info",
-    usage: 32
+    id: "2", 
+    name: "Información de Productos",
+    content: "Te envío información sobre nuestros productos. ¿Hay algo específico que te interese?",
+    tags: ["productos", "información"]
   },
   {
-    id: 3,
-    title: "Thank You",
-    content: "¡Gracias por tu mensaje! Hemos recibido tu consulta y te responderemos pronto.",
-    category: "greetings",
-    usage: 28
+    id: "3",
+    name: "Precios y Cotización",
+    content: "Para brindarte una cotización personalizada, necesito algunos datos. ¿Podrías contarme más sobre lo que buscas?",
+    tags: ["precios", "cotización"]
   },
   {
-    id: 4,
-    title: "Pricing Info",
-    content: "Te envío información sobre nuestros precios. ¿Hay algún servicio específico que te interese?",
-    category: "sales",
-    usage: 23
+    id: "4",
+    name: "Horarios de Atención",
+    content: "Nuestro horario de atención es de Lunes a Viernes de 9:00 AM a 6:00 PM. ¿En qué podemos ayudarte?",
+    tags: ["horarios", "disponibilidad"]
   },
   {
-    id: 5,
-    title: "Follow Up",
-    content: "Hola, quería hacer seguimiento a tu consulta anterior. ¿Has tenido oportunidad de revisar nuestra propuesta?",
-    category: "follow-up",
-    usage: 19
+    id: "5",
+    name: "Seguimiento",
+    content: "Quería hacer seguimiento de nuestra conversación anterior. ¿Ya pudiste revisar la propuesta que te envié?",
+    tags: ["seguimiento", "propuesta"]
   }
 ];
 
-const categories = ["greetings", "info", "sales", "follow-up", "support"];
-
-const QuickReplies = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [newReply, setNewReply] = useState({ title: "", content: "", category: "greetings" });
+export default function QuickReplies() {
+  const [replies, setReplies] = useState<QuickReply[]>(defaultReplies);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingReply, setEditingReply] = useState<QuickReply | null>(null);
+  const [formData, setFormData] = useState({ name: "", content: "", tags: "" });
   const { toast } = useToast();
 
-  const filteredReplies = selectedCategory === "all" 
-    ? quickReplies 
-    : quickReplies.filter(reply => reply.category === selectedCategory);
+  useEffect(() => {
+    document.title = "Respuestas Rápidas – BeastCRM Clone";
+  }, []);
 
-  const handleCopyToClipboard = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast({
-      title: "Copied!",
-      description: "Quick reply copied to clipboard",
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newReply: QuickReply = {
+      id: editingReply?.id || Date.now().toString(),
+      name: formData.name,
+      content: formData.content,
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      created_at: new Date().toISOString()
+    };
+
+    if (editingReply) {
+      setReplies(prev => prev.map(reply => 
+        reply.id === editingReply.id ? newReply : reply
+      ));
+      toast({ description: "Respuesta rápida actualizada correctamente" });
+    } else {
+      setReplies(prev => [...prev, newReply]);
+      toast({ description: "Respuesta rápida creada correctamente" });
+    }
+
+    resetForm();
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      greetings: "bg-green-100 text-green-800",
-      info: "bg-blue-100 text-blue-800",
-      sales: "bg-purple-100 text-purple-800",
-      "follow-up": "bg-yellow-100 text-yellow-800",
-      support: "bg-red-100 text-red-800"
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
+  const resetForm = () => {
+    setFormData({ name: "", content: "", tags: "" });
+    setEditingReply(null);
+    setIsDialogOpen(false);
+  };
+
+  const handleEdit = (reply: QuickReply) => {
+    setEditingReply(reply);
+    setFormData({
+      name: reply.name,
+      content: reply.content,
+      tags: reply.tags.join(', ')
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setReplies(prev => prev.filter(reply => reply.id !== id));
+    toast({ description: "Respuesta rápida eliminada" });
+  };
+
+  const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast({ description: "Contenido copiado al portapapeles" });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Quick Replies</h1>
-          <p className="text-muted-foreground">
-            Manage your quick reply templates for faster communication.
-          </p>
+          <h1 className="text-2xl font-bold">Respuestas Rápidas</h1>
+          <p className="text-muted-foreground">Gestiona las respuestas predefinidas para agilizar las conversaciones</p>
         </div>
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Quick Reply
+            <Button variant="hero" onClick={() => setEditingReply(null)}>
+              <Plus className="h-4 w-4" />
+              Nueva Respuesta
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Create Quick Reply</DialogTitle>
+              <DialogTitle>
+                {editingReply ? "Editar Respuesta Rápida" : "Nueva Respuesta Rápida"}
+              </DialogTitle>
               <DialogDescription>
-                Add a new quick reply template to speed up your conversations.
+                Crea respuestas predefinidas para usar en tus conversaciones
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Title</Label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre</Label>
                 <Input
-                  id="title"
-                  value={newReply.title}
-                  onChange={(e) => setNewReply({...newReply, title: e.target.value})}
-                  placeholder="Enter title..."
+                  id="name"
+                  placeholder="Ej: Saludo inicial"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  value={newReply.category}
-                  onChange={(e) => setNewReply({...newReply, category: e.target.value})}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="content">Content</Label>
+              <div className="space-y-2">
+                <Label htmlFor="content">Contenido del Mensaje</Label>
                 <Textarea
                   id="content"
-                  value={newReply.content}
-                  onChange={(e) => setNewReply({...newReply, content: e.target.value})}
-                  placeholder="Enter your quick reply message..."
-                  rows={4}
+                  placeholder="Escribe aquí el contenido de la respuesta..."
+                  className="min-h-[100px]"
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  required
                 />
               </div>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                console.log("Creating quick reply:", newReply);
-                setIsDialogOpen(false);
-                setNewReply({ title: "", content: "", category: "greetings" });
-                toast({
-                  title: "Success",
-                  description: "Quick reply created successfully",
-                });
-              }}>
-                Create
-              </Button>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="tags">Etiquetas (separadas por comas)</Label>
+                <Input
+                  id="tags"
+                  placeholder="Ej: saludo, bienvenida, inicial"
+                  value={formData.tags}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {editingReply ? "Actualizar" : "Crear"}
+                </Button>
+              </div>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex space-x-2">
-        <Button
-          variant={selectedCategory === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedCategory("all")}
-        >
-          All ({quickReplies.length})
-        </Button>
-        {categories.map(category => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(category)}
-          >
-            {category} ({quickReplies.filter(r => r.category === category).length})
-          </Button>
-        ))}
-      </div>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{quickReplies.length}</div>
-            <div className="text-sm text-muted-foreground">Total Templates</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              {quickReplies.reduce((sum, reply) => sum + reply.usage, 0)}
-            </div>
-            <div className="text-sm text-muted-foreground">Total Usage</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">
-              {Math.round(quickReplies.reduce((sum, reply) => sum + reply.usage, 0) / quickReplies.length)}
-            </div>
-            <div className="text-sm text-muted-foreground">Avg. Usage</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{categories.length}</div>
-            <div className="text-sm text-muted-foreground">Categories</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Replies List */}
-      <div className="grid gap-4">
-        {filteredReplies.map((reply) => (
-          <Card key={reply.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <CardTitle className="text-lg">{reply.title}</CardTitle>
-                  <Badge variant="secondary" className={getCategoryColor(reply.category)}>
-                    {reply.category}
-                  </Badge>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
-                    Used {reply.usage} times
-                  </span>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {replies.map((reply) => (
+          <Card key={reply.id} className="card-elevated">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-base">{reply.name}</CardTitle>
+                <div className="flex space-x-1">
                   <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopyToClipboard(reply.content)}
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => copyToClipboard(reply.content)}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3 w-3" />
                   </Button>
-                  <Button size="sm" variant="outline">
-                    <Edit className="h-4 w-4" />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => handleEdit(reply)}
+                  >
+                    <Edit2 className="h-3 w-3" />
                   </Button>
-                  <Button size="sm" variant="outline">
-                    <Trash2 className="h-4 w-4" />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    onClick={() => handleDelete(reply.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">{reply.content}</p>
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
+                {reply.content}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {reply.tags.map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
     </div>
   );
-};
-
-export default QuickReplies;
+}

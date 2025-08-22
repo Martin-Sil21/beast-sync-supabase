@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         scopes: 'openid email profile https://www.googleapis.com/auth/contacts.readonly'
       }
     });
-
+    
     if (error) {
       console.error('Error signing in with Google:', error);
       throw error;
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       email,
       password,
     });
-
+    
     if (error) {
       console.error('Error signing in with email:', error);
       throw error;
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         emailRedirectTo: redirectUrl
       }
     });
-
+    
     if (error) {
       console.error('Error signing up with email:', error);
       throw error;

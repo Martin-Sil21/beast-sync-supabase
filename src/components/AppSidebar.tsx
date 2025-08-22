@@ -1,85 +1,80 @@
-import { 
-  LayoutDashboard, 
-  Users, 
-  MessageSquare, 
-  Send, 
-  Settings, 
-  GitBranch,
-  Zap
-} from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
+import { LayoutDashboard, KanbanSquare, Users, Settings as SettingsIcon, MessageCircle, Zap, Send } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Pipeline", href: "/pipeline", icon: GitBranch },
-  { name: "Contacts", href: "/contacts", icon: Users },
-  { name: "Quick Replies", href: "/quick-replies", icon: Zap },
-  { name: "Sessions", href: "/sessions", icon: MessageSquare },
-  { name: "Mass Messaging", href: "/mass-messaging", icon: Send },
-  { name: "Settings", href: "/settings", icon: Settings },
+const navItems = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Pipeline", url: "/pipeline", icon: KanbanSquare },
+  { title: "Contactos", url: "/contacts", icon: Users },
+  { title: "Respuestas Rápidas", url: "/quick-replies", icon: Zap },
+  { title: "Sesiones", url: "/sessions", icon: MessageCircle },
+  { title: "Mensajería Masiva", url: "/mass-messaging", icon: Send },
+  { title: "Configuración", url: "/settings", icon: SettingsIcon },
 ];
 
-export const AppSidebar = () => {
+export function AppSidebar() {
+  const { open } = useSidebar();
   const location = useLocation();
-  const { signOut, user } = useAuth();
+  const currentPath = location.pathname;
 
-  const handleSignOut = () => {
-    signOut();
-  };
+  const getNavCls = ({ isActive }: { isActive: boolean }) =>
+    isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
   return (
-    <div className="flex flex-col h-full bg-background border-r">
-      {/* Logo */}
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary">BeastCRM</h1>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-2">
-        {navigation.map((item) => {
-          const isActive = location.pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User section */}
-      <div className="p-4 border-t">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-sm font-medium text-primary">
-              {user?.email?.[0]?.toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.email}</p>
-          </div>
-        </div>
-        <Button 
-          onClick={handleSignOut} 
-          variant="outline" 
-          size="sm" 
-          className="w-full"
-        >
-          Sign Out
-        </Button>
-      </div>
-    </div>
+    <Sidebar 
+      className={`${!open ? "w-14" : "w-64"} transition-all duration-300 group`} 
+      collapsible="icon"
+    >
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Principal</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  {!open ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} end className={getNavCls}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            {open && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{item.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} end className={getNavCls}>
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {open && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
-};
+}

@@ -1,144 +1,87 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { MessageSquare, Users, Send, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { MessageSquare, Users, TrendingUp, Clock, Plus } from "lucide-react";
+import { ContactSelector } from "@/components/ContactSelector";
 
-const data = [
-  { name: "Mon", messages: 24 },
-  { name: "Tue", messages: 45 },
-  { name: "Wed", messages: 38 },
-  { name: "Thu", messages: 67 },
-  { name: "Fri", messages: 52 },
-  { name: "Sat", messages: 28 },
-  { name: "Sun", messages: 19 },
+const metrics = [
+  { title: "Nuevos prospectos", value: 67, change: -67.48, icon: MessageSquare },
+  { title: "Clientes recurrentes", value: 257, change: -58.14, icon: Users },
+  { title: "Chats totales", value: 324, change: -60.49, icon: MessageSquare },
+  { title: "Tiempo medio de réplica", value: "60s", change: 2.1, icon: Clock },
+  { title: "Mensajes", value: 1541, change: -54.89, icon: MessageSquare },
+  { title: "Mensajes mandados", value: 1329, change: -53.64, icon: TrendingUp },
+  { title: "Mensajes a prospectos", value: 190, change: -63.39, icon: TrendingUp },
+  { title: "Mensajes a clientes", value: 1351, change: -53.37, icon: TrendingUp },
 ];
 
-const Dashboard = () => {
+function StatCard({ title, value, change, icon: Icon }: any) {
+  const negative = typeof change === "number" && change < 0;
+  return (
+    <Card className="card-elevated">
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Badge variant="secondary" className="rounded-full"> <Icon className="h-4 w-4" /> </Badge>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold tabular-nums">{value}</div>
+        <p className={`text-xs mt-1 ${negative ? "text-destructive" : "text-muted-foreground"}`}>
+          {typeof change === "number" && (negative ? "↓ " : "↑ ")}
+          {typeof change === "number" ? Math.abs(change).toFixed(2) + "%" : ""}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function Dashboard() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your CRM dashboard. Here's an overview of your activities.
-        </p>
-      </div>
+      <section>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Resumen de actividad y métricas clave.</p>
+          </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
-              +20% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">156</div>
-            <p className="text-xs text-muted-foreground">
-              +12 new this week
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">
-              +8% from yesterday
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">87%</div>
-            <p className="text-xs text-muted-foreground">
-              +2% improvement
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+
+
+
+          
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {metrics.map((m) => (
+          <StatCard key={m.title} {...m} />
+        ))}
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <Card className="card-elevated">
           <CardHeader>
-            <CardTitle>Messages This Week</CardTitle>
-            <CardDescription>
-              Daily message activity for the past 7 days
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="messages" className="fill-primary" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Latest interactions and updates
-            </CardDescription>
+            <CardTitle>Fuentes de leads</CardTitle>
+            <CardDescription>Top canales de adquisición</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-4">
-                <div className="h-2 w-2 bg-green-500 rounded-full mt-2"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">New contact added</p>
-                  <p className="text-xs text-muted-foreground">John Doe via WhatsApp</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="h-2 w-2 bg-blue-500 rounded-full mt-2"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Mass message campaign sent</p>
-                  <p className="text-xs text-muted-foreground">156 recipients</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="h-2 w-2 bg-yellow-500 rounded-full mt-2"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Session closed</p>
-                  <p className="text-xs text-muted-foreground">Instagram chat with Sarah</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="h-2 w-2 bg-purple-500 rounded-full mt-2"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Quick reply updated</p>
-                  <p className="text-xs text-muted-foreground">Welcome message template</p>
-                </div>
-              </div>
+            <div className="h-56 grid place-items-center text-muted-foreground">
+              <span>Gráfico (placeholder)</span>
             </div>
           </CardContent>
         </Card>
-      </div>
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle>Rendimiento por agente</CardTitle>
+            <CardDescription>Comparativo simple</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-56 grid place-items-center text-muted-foreground">
+              <span>Gráfico (placeholder)</span>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
-};
-
-export default Dashboard;
+}

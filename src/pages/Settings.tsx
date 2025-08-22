@@ -1,249 +1,48 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
-import { Settings as SettingsIcon, User, Bell, Shield, Database } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import GoogleContactsSync from "@/components/GoogleContactsSync";
 
-const Settings = () => {
-  const { user } = useAuth();
+const spaces = [
+  { name: "Fichas cargadas", color: "accent" },
+  { name: "Publi gral influ", color: "accent" },
+  { name: "Principal", color: "primary" },
+  { name: "FAKE/ESTAFA", color: "destructive" },
+  { name: "SOPORTE", color: "ring" },
+];
 
+export default function Settings() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences.
-        </p>
-      </div>
+      <section className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Configuración</h1>
+          <p className="text-sm text-muted-foreground">Crea, edita y elimina tus espacios de trabajo.</p>
+        </div>
+        <Button variant="hero" size="sm"><Plus className="h-4 w-4" />Agregar</Button>
+      </section>
 
-      <div className="grid gap-6">
-        {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <CardTitle>Profile Settings</CardTitle>
-            </div>
-            <CardDescription>
-              Update your personal information and preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={user?.email || ""} disabled />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="Enter your full name" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" placeholder="Enter your phone number" />
-            </div>
-            <Button>Save Profile</Button>
-          </CardContent>
-        </Card>
+      <GoogleContactsSync />
 
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Bell className="h-5 w-5" />
-              <CardTitle>Notification Settings</CardTitle>
-            </div>
-            <CardDescription>
-              Configure how you want to receive notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">New Messages</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified when you receive new messages
-                </p>
+      <Card className="card-elevated">
+        <CardHeader>
+          <CardTitle>Espacios de trabajo</CardTitle>
+          <CardDescription>Gestiona tus columnas del pipeline</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
+            {spaces.map((s) => (
+              <div key={s.name} className="rounded-xl border bg-card/70 p-4">
+                <div className="text-sm font-medium mb-3">{s.name}</div>
+                <div className="flex gap-2">
+                  <Button variant="secondary" size="sm"><Pencil className="h-4 w-4" />Editar</Button>
+                  <Button variant="outline" size="sm"><Trash2 className="h-4 w-4" />Eliminar</Button>
+                </div>
               </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Session Updates</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified about session status changes
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Campaign Reports</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive reports about mass messaging campaigns
-                </p>
-              </div>
-              <Switch />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive notifications via email
-                </p>
-              </div>
-              <Switch />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Security Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Shield className="h-5 w-5" />
-              <CardTitle>Security Settings</CardTitle>
-            </div>
-            <CardDescription>
-              Manage your account security and authentication
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Current Password</Label>
-              <Input type="password" placeholder="Enter current password" />
-            </div>
-            <div className="space-y-2">
-              <Label>New Password</Label>
-              <Input type="password" placeholder="Enter new password" />
-            </div>
-            <div className="space-y-2">
-              <Label>Confirm New Password</Label>
-              <Input type="password" placeholder="Confirm new password" />
-            </div>
-            <Button>Update Password</Button>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Two-Factor Authentication</Label>
-                <p className="text-sm text-muted-foreground">
-                  Add an extra layer of security to your account
-                </p>
-              </div>
-              <Button variant="outline">Enable 2FA</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Integration Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Database className="h-5 w-5" />
-              <CardTitle>Integrations</CardTitle>
-            </div>
-            <CardDescription>
-              Manage your third-party integrations and API settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Google Contacts</Label>
-                <p className="text-sm text-muted-foreground">
-                  Sync contacts from your Google account
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="space-y-0.5">
-                <Label className="font-medium">WhatsApp Business API</Label>
-                <p className="text-sm text-muted-foreground">
-                  Connect your WhatsApp Business account
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">Not Connected</Badge>
-                <Button variant="outline" size="sm">Connect</Button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Evolution API</Label>
-                <p className="text-sm text-muted-foreground">
-                  Configure Evolution API settings
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">Not Connected</Badge>
-                <Button variant="outline" size="sm">Setup</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* System Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <SettingsIcon className="h-5 w-5" />
-              <CardTitle>System Settings</CardTitle>
-            </div>
-            <CardDescription>
-              Configure system-wide settings and preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Auto-assign New Sessions</Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically assign new sessions to available agents
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="font-medium">Message Encryption</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enable end-to-end encryption for messages
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label>Session Timeout (minutes)</Label>
-              <Input type="number" defaultValue="30" className="w-24" />
-            </div>
-            <div className="space-y-2">
-              <Label>Max Daily Messages per Contact</Label>
-              <Input type="number" defaultValue="50" className="w-24" />
-            </div>
-            <Button>Save System Settings</Button>
-          </CardContent>
-        </Card>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default Settings;
+}
